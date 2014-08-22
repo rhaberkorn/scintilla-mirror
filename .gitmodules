@@ -1,0 +1,4 @@
+[submodule "scinterm"]
+	path = scinterm
+	url = https://github.com/rhaberkorn/scinterm-mirror.git
+	ignore = untracked
