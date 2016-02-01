@@ -20,6 +20,7 @@
 #include <glib.h>
 #include <gmodule.h>
 #include <gtk/gtk.h>
+#include <gdk/gdk.h>
 #include <gdk/gdkkeysyms.h>
 
 #if defined(__WIN32__) || defined(_MSC_VER)
@@ -423,7 +424,7 @@ ScintillaGTK::ScintillaGTK(_ScintillaObject *sci_) :
 }
 
 ScintillaGTK::~ScintillaGTK() {
-	g_idle_remove_by_data(this);
+	g_source_remove_by_user_data(this);
 	if (evbtn) {
 		gdk_event_free(reinterpret_cast<GdkEvent *>(evbtn));
 		evbtn = 0;
@@ -1077,7 +1078,7 @@ bool ScintillaGTK::FineTickerRunning(TickReason reason) {
 
 void ScintillaGTK::FineTickerStart(TickReason reason, int millis, int /* tolerance */) {
 	FineTickerCancel(reason);
-	timers[reason].timer = g_timeout_add(millis, TimeOut, &timers[reason]);
+	timers[reason].timer = gdk_threads_add_timeout(millis, TimeOut, &timers[reason]);
 }
 
 void ScintillaGTK::FineTickerCancel(TickReason reason) {
@@ -1093,7 +1094,7 @@ bool ScintillaGTK::SetIdle(bool on) {
 		if (!idler.state) {
 			idler.state = true;
 			idler.idlerID = reinterpret_cast<IdlerID>(
-				g_idle_add_full(G_PRIORITY_DEFAULT_IDLE, IdleCallback, this, NULL));
+				gdk_threads_add_idle_full(G_PRIORITY_DEFAULT_IDLE, IdleCallback, this, NULL));
 		}
 	} else {
 		// Stop idler, if it's running
@@ -2939,9 +2940,6 @@ gboolean ScintillaGTK::IdleCallback(gpointer pSci) {
 	ScintillaGTK *sciThis = static_cast<ScintillaGTK *>(pSci);
 	// Idler will be automatically stopped, if there is nothing
 	// to do while idle.
-#ifndef GDK_VERSION_3_6
-	gdk_threads_enter();
-#endif
 	bool ret = sciThis->Idle();
 	if (ret == false) {
 		// FIXME: This will remove the idler from GTK, we don't want to
@@ -2949,21 +2947,12 @@ gboolean ScintillaGTK::IdleCallback(gpointer pSci) {
 		// returns false (although, it should be harmless).
 		sciThis->SetIdle(false);
 	}
-#ifndef GDK_VERSION_3_6
-	gdk_threads_leave();
-#endif
 	return ret;
 }
 
 gboolean ScintillaGTK::StyleIdle(gpointer pSci) {
-#ifndef GDK_VERSION_3_6
-	gdk_threads_enter();
-#endif
 	ScintillaGTK *sciThis = static_cast<ScintillaGTK *>(pSci);
 	sciThis->IdleWork();
-#ifndef GDK_VERSION_3_6
-	gdk_threads_leave();
-#endif
 	// Idler will be automatically stopped
 	return FALSE;
 }
@@ -2973,7 +2962,7 @@ void ScintillaGTK::QueueIdleWork(WorkNeeded::workItems items, int upTo) {
 	if (!workNeeded.active) {
 		// Only allow one style needed to be queued
 		workNeeded.active = true;
-		g_idle_add_full(G_PRIORITY_HIGH_IDLE, StyleIdle, this, NULL);
+		gdk_threads_add_idle_full(G_PRIORITY_HIGH_IDLE, StyleIdle, this, NULL);
 	}
 }
 
