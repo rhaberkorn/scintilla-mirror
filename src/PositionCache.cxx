@@ -690,10 +690,38 @@ BreakFinder::BreakFinder(const LineLayout *ll_, const Selection *psel, Range lin
 		for (size_t r=0; r<psel->Count(); r++) {
 			const SelectionSegment portion = psel->Range(r).Intersect(segmentLine);
 			if (!(portion.start == portion.end)) {
-				if (portion.start.IsValid())
-					Insert(portion.start.Position() - posLineStart);
-				if (portion.end.IsValid())
-					Insert(portion.end.Position() - posLineStart);
+				if (portion.start.IsValid()) {
+					const bool skipFirstSelectedCharacter = pvsDraw && pvsDraw->IsMainCursesCaret(r == 0) &&
+						psel->Range(r).caret < psel->Range(r).anchor;
+					if (!skipFirstSelectedCharacter) {
+						Insert(portion.start.Position() - posLineStart);
+					} else {
+						// On the curses platform, the terminal is drawing its own caret, so
+						// make sure the main selection is not drawn on its first character
+						// if the caret is currently on it.
+						// While the caret is still inside the selection, it will be at the
+						// end of this text segment (instead of the beginning of the next
+						// one), so testing against this condition allows it to be drawn
+						// as not selected.
+						const Sci::Position next = pdoc->MovePositionOutsideChar(portion.start.Position()+1, 1);
+						Insert(next - posLineStart);
+					}
+				}
+				if (portion.end.IsValid()) {
+					const bool skipLastSelectedCharacter = pvsDraw && pvsDraw->IsMainCursesCaret(r == 0) &&
+						psel->Range(r).caret > psel->Range(r).anchor && pvsDraw->DrawCaretInsideSelection(false, false);
+					if (!skipLastSelectedCharacter) {
+						Insert(portion.end.Position() - posLineStart);
+					} else {
+						// On the curses platform, the terminal is drawing its own caret, so
+						// make sure the main selection is not drawn on its last character
+						// if the caret is currently on it. The caret will be its own text
+						// segment and at the end of said segment, so testing against this
+						// condition allows it to be drawn as not selected.
+						const Sci::Position prev = pdoc->MovePositionOutsideChar(portion.end.Position()-1, -1);
+						Insert(prev - posLineStart);
+					}
+				}
 			}
 		}
 	}
