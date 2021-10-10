@@ -219,7 +219,7 @@ void Editor::Finalise() {
 }
 
 void Editor::SetRepresentations() {
-	reprs->SetDefaultRepresentations(pdoc->dbcsCodePage);
+//	reprs->SetDefaultRepresentations(pdoc->dbcsCodePage);
 }
 
 void Editor::DropGraphics() noexcept {
