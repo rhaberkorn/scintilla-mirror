@@ -213,6 +213,7 @@ void Editor::Finalise() {
 }
 
 void Editor::SetRepresentations() {
+#if 0
 	reprs.Clear();
 
 	// C0 control set
@@ -257,6 +258,7 @@ void Editor::SetRepresentations() {
 			}
 		}
 	}
+#endif
 }
 
 void Editor::DropGraphics() noexcept {
