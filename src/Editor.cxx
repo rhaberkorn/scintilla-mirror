@@ -915,8 +915,10 @@ Point Editor::PointMainCaret() {
  * as it moves up and down.
  */
 void Editor::SetLastXChosen() {
+#if 0
 	const Point pt = PointMainCaret();
 	lastXChosen = static_cast<int>(pt.x) + xOffset;
+#endif
 }
 
 void Editor::ScrollTo(Sci::Line line, bool moveThumb) {
@@ -1393,11 +1395,13 @@ void Editor::ScrollRange(SelectionRange range) {
 }
 
 void Editor::EnsureCaretVisible(bool useMargin, bool vert, bool horiz) {
+#if 0
 	SetXYScroll(XYScrollToMakeVisible(SelectionRange(posDrag.IsValid() ? posDrag : sel.RangeMain().caret),
 		(useMargin?XYScrollOptions::useMargin:XYScrollOptions::none)|
 		(vert?XYScrollOptions::vertical:XYScrollOptions::none)|
 		(horiz?XYScrollOptions::horizontal:XYScrollOptions::none),
 		caretPolicies));
+#endif
 }
 
 void Editor::ShowCaretAtCurrentPosition() {
@@ -6497,7 +6501,9 @@ sptr_t Editor::WndProc(Message iMessage, uptr_t wParam, sptr_t lParam) {
 		break;
 
 	case Message::ScrollCaret:
-		EnsureCaretVisible();
+		SetXYScroll(XYScrollToMakeVisible(SelectionRange(posDrag.IsValid() ? posDrag : sel.RangeMain().caret),
+			XYScrollOptions::useMargin | XYScrollOptions::vertical | XYScrollOptions::horizontal,
+			caretPolicies));
 		break;
 
 	case Message::SetReadOnly:
