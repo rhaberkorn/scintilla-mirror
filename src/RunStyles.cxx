@@ -319,9 +319,10 @@ void RunStyles<DISTANCE, STYLE>::Check() const {
 	}
 }
 
+// should also cover all possible types underlying ptrdiff_t (Sci::Position)
 template class Scintilla::Internal::RunStyles<int, int>;
 template class Scintilla::Internal::RunStyles<int, char>;
-#if (PTRDIFF_MAX != INT_MAX) || defined(__HAIKU__)
-template class Scintilla::Internal::RunStyles<ptrdiff_t, int>;
-template class Scintilla::Internal::RunStyles<ptrdiff_t, char>;
-#endif
+template class Scintilla::Internal::RunStyles<long, int>;
+template class Scintilla::Internal::RunStyles<long, char>;
+template class Scintilla::Internal::RunStyles<long long, int>;
+template class Scintilla::Internal::RunStyles<long long, char>;
