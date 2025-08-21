@@ -338,10 +338,7 @@ CellBuffer::CellBuffer(bool hasStyles_, bool largeDocument_) :
 	utf8LineEnds = LineEndType::Default;
 	collectingUndo = true;
 	uh = std::make_unique<UndoHistory>();
-	if (largeDocument)
-		plv = std::make_unique<LineVector<Sci::Position>>();
-	else
-		plv = std::make_unique<LineVector<int>>();
+	plv = std::make_unique<LineVector<Sci::Position>>();
 }
 
 CellBuffer::~CellBuffer() noexcept = default;
